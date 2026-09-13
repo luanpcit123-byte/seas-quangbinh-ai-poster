@@ -7,7 +7,7 @@
 Dự án này là một quy trình MLOps End-to-End: từ việc fine-tune mô hình sinh ảnh FLUX.1-dev bằng kỹ thuật QLoRA để học đặc trưng địa danh du lịch Quảng Bình, Việt Nam, cho đến việc xây dựng web app tương tác bằng Marimo để tự động sinh ảnh AI và xuất poster PDF.
 
 <p align="center">
-  <img src="https://sb-802c47fb4bd84a93.sb.molab.run/@file/565372-222-Pah0Tz3w.pdf">
+  <img src="demo.png">
   <br>
   <i>(Ghi chú: bạn nên thay URL ảnh demo này bằng hình ảnh poster thực tế sau khi push project)</i>
 </p>
