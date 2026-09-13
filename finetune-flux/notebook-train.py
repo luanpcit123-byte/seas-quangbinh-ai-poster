@@ -1078,11 +1078,18 @@ def _(main, torch):
 
 @app.cell
 def _():
-    #Up lên hugging face
+    # Up lên hugging face
+    import os
     from huggingface_hub import HfApi, login
 
-    # 1. Đăng nhập với Write Token
-    HF_TOKEN = "hf_XXXX"  # 👈 Thay bằng token của bạn
+    # 1. Đăng nhập với Write Token từ biến môi trường
+    HF_TOKEN = os.getenv("HF_TOKEN")
+    if not HF_TOKEN:
+        raise ValueError(
+            "Thiếu biến môi trường HF_TOKEN.\n"
+            "Hãy chạy: export HF_TOKEN='hf_xxx'\n"
+            "hoặc thêm vào shell của bạn trước khi chạy cell này."
+        )
     login(token=HF_TOKEN)
 
     # 2. Cấu hình thông tin Upload

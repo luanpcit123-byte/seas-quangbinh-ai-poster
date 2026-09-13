@@ -9,7 +9,7 @@ Dự án này là một quy trình MLOps End-to-End: từ việc fine-tune mô h
 <p align="center">
   <img src="demo.png">
   <br>
-  <i>(Ghi chú: bạn nên thay URL ảnh demo này bằng hình ảnh poster thực tế sau khi push project)</i>
+  <i>Ảnh poster được sinh ra</i>
 </p>
 
 ## 🌟 Điểm nổi bật
@@ -18,7 +18,7 @@ Dự án này là một quy trình MLOps End-to-End: từ việc fine-tune mô h
 - Pre-computed Embeddings: Tối ưu hóa quá trình train bằng cách trích xuất và cache Text Embeddings qua T5 Encoder trước khi chạy vòng lặp Diffusion, giảm tải bộ nhớ đáng kể.
 - Reactive Web UI (Marimo): Xây dựng giao diện ứng dụng với Marimo – framework Python reactive hiện đại, thay thế cho Streamlit/Gradio.
 - PDF Typography & Templating: Tự động ghép nối nền AI sinh ra với hệ thống typography (PIL + ReportLab) để xuất file PDF chất lượng cao.
-- Secure API Management: Quản lý an toàn Hugging Face Token thông qua biến môi trường (.env) và UI State tích hợp.
+- Secure API Management: Quản lý token Hugging Face thông qua biến môi trường, với UI fallback khi chưa có token được thiết lập.
 
 ## 📁 Cấu trúc repository
 
@@ -28,7 +28,7 @@ Dự án này là một quy trình MLOps End-to-End: từ việc fine-tune mô h
 ├── requirements.txt
 
 ├── app-ui/
-│   ├── app_ui.py                 # Giao diện web chính bằng Marimo
+│   ├── notebook-app-ui.py        # Giao diện web chính bằng Marimo
 │   ├── core_model.py            # Logic nặng: load model + generate background
 │   ├── setup.py                 # Download font chữ, cài đặt phụ trợ
 │   ├── template_manager.py      # Quản lý template + typography + PDF
@@ -36,11 +36,13 @@ Dự án này là một quy trình MLOps End-to-End: từ việc fine-tune mô h
 │   └── ...
 ├── finetune-flux/
 │   ├── notebook-train.py        # Notebook / script train QLoRA
-│   ├── dataset/
-│   │   └── quang_phu/           # Dữ liệu ảnh + caption dùng để fine-tune
+│   ├── quang_phu/
+│   │   └── *.txt                # Dữ liệu caption / prompt dùng để fine-tune
 │   └── ...
-├── assets/                      # Ảnh demo, tài nguyên tĩnh nếu có
-└── .env                         # Local config (không push lên GitHub)
+├── .env.example                 # Mẫu biến môi trường (không push token thật)
+├── .gitignore                   # Bỏ qua file .env và môi trường cục bộ
+├── demo.png                     # Ảnh demo
+└── requirements.txt             # Dependencies chính của project
 ```
 
 Lưu ý: Cấu trúc thực tế của dự án đang được tổ chức theo 2 phần chính:
@@ -64,28 +66,34 @@ pip install -r requirements.txt
 
 FLUX.1-dev yêu cầu cấp quyền từ Hugging Face.
 
-- Tạo file `.env` ở thư mục gốc của dự án.
-- Thêm token Hugging Face (quyền Read) của bạn:
+- Trong môi trường local, hãy đặt biến môi trường `HF_TOKEN` trước khi chạy app.
+- Nếu bạn dùng shell local:
+
+```bash
+export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxx
+```
+
+- Hoặc tạo file `.env` ở gốc repo và đảm bảo terminal / runtime của bạn tự load file đó trước khi chạy ứng dụng.
 
 ```env
 HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxx
 ```
 
-Nếu bỏ qua bước này, giao diện App sẽ tự động hiển thị ô nhập token cho bạn.
+Lưu ý: trong project hiện tại, app UI đọc token bằng `os.getenv("HF_TOKEN")` ở [app-ui/notebook-app-ui.py](app-ui/notebook-app-ui.py). Nếu biến này chưa được thiết lập, giao diện sẽ hiển thị ô nhập token để đăng nhập thủ công.
 
 ### 3. Khởi chạy ứng dụng
 
 Khởi chạy giao diện bằng lệnh Marimo:
 
 ```bash
-marimo run app_ui.py
+cd app-ui
+marimo run notebook-app-ui.py
 ```
 
-Hoặc nếu bạn đang trong thư mục `app-ui`:
+Hoặc nếu đang ở gốc repo:
 
 ```bash
-cd app-ui
-marimo run app_ui.py
+marimo run app-ui/notebook-app-ui.py
 ```
 
 ### 4. Quy trình sử dụng
@@ -125,9 +133,9 @@ marimo edit notebook-train.py
 
 > ⚠️ LƯU Ý QUAN TRỌNG KHI UPLOAD
 >
-> Phần notebook training không sử dụng file `.env` hay giao diện web. Ở cell cuối cùng (cell đẩy model lên Hugging Face), bạn bắt buộc phải tự điền Hugging Face Token có quyền Write trực tiếp vào biến `HF_TOKEN = "hf_..."` trong code.
+> Phần notebook training hiện chưa có loader `.env` tự động. Ở cell cuối cùng trong [finetune-flux/notebook-train.py](finetune-flux/notebook-train.py), bạn vẫn phải nhập Hugging Face Token có quyền Write trực tiếp vào biến `HF_TOKEN = "hf_..."` hoặc export `HF_TOKEN` trong shell trước khi chạy.
 >
-> Tuyệt đối không lưu và đẩy `notebook-train.py` lên GitHub khi đã điền token thật của bạn vào đó để tránh bị lộ tài khoản.
+> Tuyệt đối không lưu và đẩy file training lên GitHub khi đã điền token thật của bạn vào đó để tránh bị lộ tài khoản.
 >
 > Tham khảo kết quả LoRA của dự án tại: [Hugging Face Repo](https://huggingface.co/luannguyen1345/quang-phu-lora-flux)
 
@@ -161,7 +169,8 @@ Thư mục `finetune-flux` là nơi lưu trữ quy trình train LoRA:
 ## 📌 Ghi chú
 
 - Dữ liệu ảnh mẫu không được đính kèm trong repository để tối ưu dung lượng
-- Bạn nên lưu thông tin nhạy cảm như Hugging Face Token trong file `.env` và thêm nó vào `.gitignore`
+- Nên lưu thông tin nhạy cảm như Hugging Face Token trong biến môi trường hoặc file `.env` local, và luôn thêm `.env` vào `.gitignore`
+- Trong project hiện tại, tính năng env var được đọc trực tiếp trong [app-ui/notebook-app-ui.py](app-ui/notebook-app-ui.py); phần training notebook vẫn cần token thủ công dù có thể dùng biến môi trường bên ngoài nếu bạn tự cấu hình shell trước khi chạy
 - Tùy vào cấu hình máy, thời gian xử lý có thể thay đổi
 
 ## 🔗 Tài liệu tham khảo
@@ -173,4 +182,3 @@ Thư mục `finetune-flux` là nơi lưu trữ quy trình train LoRA:
 
 ---
 
-Nếu bạn muốn, tôi có thể tiếp tục viết thêm phiên bản README ngắn gọn hơn cho GitHub, hoặc phiên bản chuyên nghiệp hơn theo chuẩn portfolio / AI project showcase.
